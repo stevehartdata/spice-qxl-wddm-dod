@@ -618,7 +618,7 @@ private:
     void DiscardDrawable(QXLDrawable *drawable);
     BOOLEAN PutBytesAlign(QXLDataChunk **chunk_ptr, UINT8 **now_ptr,
                             UINT8 **end_ptr, UINT8 *src, int size,
-                            size_t alloc_size, PLIST_ENTRY pDelayed);
+                            size_t alloc_size, PLIST_ENTRY pDelayed, BOOLEAN bDevRam = FALSE);
     QXLDataChunk *MakeChunk(DelayedChunk *pdc);
     ULONG PrepareDrawable(QXLDrawable*& drawable);
     void AsyncIo(UCHAR  Port, UCHAR Value);

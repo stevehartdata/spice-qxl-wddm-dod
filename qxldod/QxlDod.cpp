@@ -4649,10 +4649,11 @@ QXLDrawable *QxlDevice::PrepareBltBits (
 // regular chunk allocated from device memory and the data copied to it
 BOOLEAN QxlDevice::PutBytesAlign(QXLDataChunk **chunk_ptr, UINT8 **now_ptr,
                             UINT8 **end_ptr, UINT8 *src, int size,
-                            size_t alloc_size, PLIST_ENTRY pDelayed)
+                            size_t alloc_size, PLIST_ENTRY pDelayed, BOOLEAN bDevRam)
 {
     PAGED_CODE();
     BOOLEAN bResult = TRUE;
+    UINT32 memSpace = bDevRam ? MSPACE_TYPE_DEVRAM : MSPACE_TYPE_VRAM;
     BOOLEAN bForced = !g_bSupportVSync || !pDelayed;
     QXLDataChunk *chunk = *chunk_ptr;
     UINT8 *now = *now_ptr;
@@ -4664,7 +4665,7 @@ BOOLEAN QxlDevice::PutBytesAlign(QXLDataChunk **chunk_ptr, UINT8 **now_ptr,
     while (size) {
         int cp_size = (int)MIN(end - now, size);
         if (!cp_size) {
-            void *ptr = (bForced || IsListEmpty(pDelayed)) ? AllocMem(MSPACE_TYPE_VRAM, alloc_size + sizeof(QXLDataChunk), bForced) : NULL;
+            void *ptr = (bForced || IsListEmpty(pDelayed)) ? AllocMem(memSpace, alloc_size + sizeof(QXLDataChunk), bForced) : NULL;
             if (ptr) {
                 chunk->next_chunk = PA(ptr);
                 ((QXLDataChunk *)ptr)->prev_chunk = PA(chunk);
@@ -4775,7 +4776,7 @@ NTSTATUS  QxlDevice::SetPointerShape(_In_ CONST DXGKARG_SETPOINTERSHAPE* pSetPoi
     cursor_cmd->u.set.position.x = 0;
     cursor_cmd->u.set.position.y = 0;
 
-    res = (Resource *)AllocMem(MSPACE_TYPE_VRAM, CURSOR_ALLOC_SIZE, TRUE);
+    res = (Resource *)AllocMem(MSPACE_TYPE_DEVRAM, CURSOR_ALLOC_SIZE, TRUE);
     if (!res) {
         DbgPrint(TRACE_LEVEL_ERROR, ("%s: Failed to allocate cursor data\n", __FUNCTION__));
         ReleaseOutput(cursor_cmd->release_info.id);
@@ -4818,7 +4819,7 @@ NTSTATUS  QxlDevice::SetPointerShape(_In_ CONST DXGKARG_SETPOINTERSHAPE* pSetPoi
     end = (UINT8 *)res + CURSOR_ALLOC_SIZE;
     src_end = src + (pSetPointerShape->Pitch * pSetPointerShape->Height * num_images);
     for (; src != src_end; src += pSetPointerShape->Pitch) {
-        if (!PutBytesAlign(&chunk, &now, &end, src, line_size, PAGE_SIZE - PAGE_SIZE % line_size, NULL)) {
+        if (!PutBytesAlign(&chunk, &now, &end, src, line_size, PAGE_SIZE - PAGE_SIZE % line_size, NULL, TRUE)) {
             // we have a chance to get here only with color cursor bigger than 45*45
             // and only if we modify this procedure to use non-forced allocation  
             DbgPrint(TRACE_LEVEL_ERROR, ("%s: failed to push part of shape\n", __FUNCTION__));
