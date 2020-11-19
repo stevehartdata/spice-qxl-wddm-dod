@@ -1,3 +1,6 @@
+Version 0.21
+	Fix problem with latest qemu (device v5)
+
 Version 0.20
 	Add lower resolutions
 	Allow all 4 screen orientations
