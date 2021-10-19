@@ -3123,6 +3123,8 @@ QxlDevice::QxlDevice(_In_ QxlDod* pQxlDod)
     m_PresentThread = NULL;
     m_bActive = FALSE;
     m_bUefiMode = IsUefiMode();
+    m_PointerHotspotX = 0;
+    m_PointerHotspotY = 0;
     DbgPrint(TRACE_LEVEL_VERBOSE, ("%s, %s mode\n", __FUNCTION__, m_bUefiMode ? "UEFI" : "BIOS"));
 }
 
@@ -4874,6 +4876,8 @@ NTSTATUS  QxlDevice::SetPointerShape(_In_ CONST DXGKARG_SETPOINTERSHAPE* pSetPoi
         cursor->data_size = line_size * pSetPointerShape->Height;
     }
 
+    m_PointerHotspotX = pSetPointerShape->XHot;
+    m_PointerHotspotY = pSetPointerShape->YHot;
     cursor->header.hot_spot_x = (UINT16)pSetPointerShape->XHot;
     cursor->header.hot_spot_y = (UINT16)pSetPointerShape->YHot;
 
@@ -4924,8 +4928,8 @@ NTSTATUS QxlDevice::SetPointerPosition(_In_ CONST DXGKARG_SETPOINTERPOSITION* pS
         cursor_cmd->type = QXL_CURSOR_HIDE;
     } else {
         cursor_cmd->type = QXL_CURSOR_MOVE;
-        cursor_cmd->u.position.x = (INT16)pSetPointerPosition->X;
-        cursor_cmd->u.position.y = (INT16)pSetPointerPosition->Y;
+        cursor_cmd->u.position.x = (INT16)pSetPointerPosition->X + m_PointerHotspotX;
+        cursor_cmd->u.position.y = (INT16)pSetPointerPosition->Y + m_PointerHotspotY;
     }
     PushCursorCmd(cursor_cmd);
     DbgPrint(TRACE_LEVEL_VERBOSE, ("<--- %s\n", __FUNCTION__));

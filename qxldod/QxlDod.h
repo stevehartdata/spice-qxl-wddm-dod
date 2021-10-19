@@ -699,6 +699,9 @@ private:
     BOOLEAN m_bActive;
     BOOLEAN m_bUefiMode;
     DXGK_DISPLAY_INFORMATION m_InitialDisplayInfo;
+
+    INT m_PointerHotspotX;
+    INT m_PointerHotspotY;
 };
 
 class QxlDod {
