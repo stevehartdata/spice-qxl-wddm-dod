@@ -9,10 +9,3 @@ build_script: buildAll.bat
 
 skip_commits:
   message: /\[ci skip\]/
-
-notifications:
-  - provider: Email
-    to: spice-devel@lists.freedesktop.org
-    on_build_success: false
-    on_build_failure: true
-    on_build_status_changed: true
